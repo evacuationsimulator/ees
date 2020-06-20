@@ -17360,7 +17360,7 @@ let ConfigService = class ConfigService {
             // this.config.HOSTNAME =
             //  window.location.hostname !== "" ? window.location.hostname : "localhost"
             // // OVERRIDE
-            this.config.HOSTNAME = "ec2-13-211-178-127.ap-southeast-2.compute.amazonaws.com";
+            this.config.HOSTNAME = "ec2-3-104-53-73.ap-southeast-2.compute.amazonaws.com";
             // this.config.RESTAPI_PORT = 80
             if (this.electronService.isElectron) {
                 this.config.ELECTRON = true;

@@ -9205,10 +9205,37 @@ let GeowebMapComponent = class GeowebMapComponent {
                 // this.emergencyMessageDialog = true
                 //console.log(this.emergencyMessageDialog)
                 this.showEmergencyMessageDialog();
+                this.selectedZone = e.features[0];
                 this.broadcastZones = e.features[0].properties.SA1_MAIN16;
                 this.broadcastZoneString = "Broadcast Zone " + e.features[0].properties.SA1_MAIN16;
                 // this.mapPopupService.showPopup("here")
                 // this.showPop()
+            });
+            var zonePopup = new mapboxGl.Popup({
+                closeButton: false,
+                closeOnClick: false
+            });
+            map.on('mousemove', 'subgroups-layer', function (e) {
+                // Change the cursor style as a UI indicator.
+                map.getCanvas().style.cursor = 'pointer';
+                var coordinates = e.features[0].geometry["coordinates"][0][0];
+                var description = "Zone :" + e.features[0].properties.SA1_MAIN16 + "<br>" + e.features[0].properties.SA3_NAME16;
+                // Ensure that if the map is zoomed out such that multiple
+                // copies of the feature are visible, the popup appears
+                // over the copy being pointed to.
+                while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                    coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                }
+                // Populate the popup and set its coordinates
+                // based on the feature found.
+                zonePopup
+                    .setLngLat(coordinates)
+                    .setHTML(description)
+                    .addTo(map);
+            });
+            map.on('mouseleave', 'subgroups-layer', function () {
+                map.getCanvas().style.cursor = '';
+                zonePopup.remove();
             });
             // Handle hover feature on zones.
             var hoveredStateId = null;
@@ -9659,8 +9686,8 @@ let GeowebMapComponent = class GeowebMapComponent {
         }
         this.Errors.duplicate = false;
         this.enteredEvacMessages = [...this.enteredEvacMessages, { "type": message["message"], "broadcastHHMM": broadcastHHMM, "broadcastZones": this.broadcastZones, "content": this.messageContent }];
-        //this.messageList = true
-        //this.finalMessageList.messages.push({ "type": message["message"], "broadcastHHMM": broadcastHHMM, "broadcastZones": this.broadcastZones })
+        // Create a zone layer for this message
+        this.createSingleZoneLayer(this.selectedZone);
         //Sort by broadcast time
         this.enteredEvacMessages = this.enteredEvacMessages.sort((n1, n2) => {
             if (n1.broadcastHHMM > n2.broadcastHHMM) {
@@ -9678,10 +9705,10 @@ let GeowebMapComponent = class GeowebMapComponent {
      * @param i index of selected item
      */
     deleteMessage(i) {
-        // console.log("selelted" + i)
+        //Delete layer attached to this message
+        this.deleteSingleZoneLayer(this.enteredEvacMessages[i]["broadcastZones"]);
         // delete this.enteredEvacMessages[i]
         this.enteredEvacMessages.splice(i, 1);
-        //console.log(this.enteredEvacMessages)
     }
     /**
      * Update error messages when Evacuation messages drop down changes
@@ -9823,8 +9850,40 @@ let GeowebMapComponent = class GeowebMapComponent {
         // "mapbox://styles/mapbox/dark-v10"
         this.layerService.mapboxGl.setStyle('mapbox://styles/mapbox/' + event.value.style);
     }
+    /**
+     * Display available message list
+     */
     showMessageListDialog() {
         this.messageListDialog = true;
+    }
+    /**
+     * Create new layers according to selected messages
+     */
+    createSingleZoneLayer(data) {
+        let zone = data["properties"]["SA1_MAIN16"];
+        let zoneLayer = new mapbox_gl_layer_1.MapboxGlLayer(zone, {
+            id: zone,
+            type: "fill",
+            source: zone,
+            paint: {
+                'fill-color': '#627BC1'
+            }
+        }, {
+            id: zone,
+            source: {
+                type: "geojson",
+                data: data,
+            },
+        });
+        zoneLayer.show();
+    }
+    /**
+     * Delete single zone layer
+     */
+    deleteSingleZoneLayer(id) {
+        if (this.layerService.mapboxGl.getLayer(id)) {
+            this.layerService.mapboxGl.removeLayer(id);
+        }
     }
 };
 __decorate([
@@ -12180,6 +12239,9 @@ class Emv2ClientJob extends job_1.ClientJob {
                     },
                     {
                         name: "Caslemain_Archetypes_500_Persons",
+                    },
+                    {
+                        name: "Caslemain_Archetypes_100_Persons",
                     },
                     {
                         name: "Castlemaine_Archetypes_30_Persons",
@@ -17344,6 +17406,7 @@ let ConfigService = class ConfigService {
         return new Promise((resolve, reject) => {
             // Set default RESTAPI_PORT based on wether we a running in produciton
             if (this.config.production) {
+                console.log("production");
                 // If in production -> either use same port as the window.location, or use 443 for https and 80 for http
                 this.config.RESTAPI_PORT =
                     window.location.port !== ""
@@ -17353,14 +17416,15 @@ let ConfigService = class ConfigService {
                             : 80;
             }
             else {
+                console.log("development");
                 // If not production -> set port to 8443 for https and 8080 for http
-                this.config.RESTAPI_PORT = location.protocol === "https:" ? 4100 : 4100;
+                this.config.RESTAPI_PORT = location.protocol === "https:" ? 8443 : 8080;
             }
             this.config.APP_PATH = "./";
-            // this.config.HOSTNAME =
-            //  window.location.hostname !== "" ? window.location.hostname : "localhost"
+            this.config.HOSTNAME =
+                window.location.hostname !== "" ? window.location.hostname : "localhost";
             // // OVERRIDE
-            this.config.HOSTNAME = "ec2-3-104-53-73.ap-southeast-2.compute.amazonaws.com";
+            // this.config.HOSTNAME = "ec2-3-104-53-73.ap-southeast-2.compute.amazonaws.com"
             // this.config.RESTAPI_PORT = 80
             if (this.electronService.isElectron) {
                 this.config.ELECTRON = true;

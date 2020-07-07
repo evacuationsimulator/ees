@@ -17665,7 +17665,7 @@ let ConfigService = class ConfigService {
             else {
                 console.log("development");
                 // If not production -> set port to 8443 for https and 8080 for http
-                this.config.RESTAPI_PORT = location.protocol === "https:" ? 8443 : 8080;
+                this.config.RESTAPI_PORT = location.protocol === "https:" ? 8443 : 8443;
             }
             this.config.APP_PATH = "./";
             // this.config.HOSTNAME =

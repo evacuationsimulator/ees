@@ -8776,7 +8776,7 @@ exports.PopupFormService = PopupFormService;
 /*! no static exports found */
 /***/ (function(module, exports) {
 
-module.exports = "<app-map-popup #mapPopup></app-map-popup>\n\n<div id=\"map-container\" #mapContainer>\n  <div id=\"top-right-controls\" [ngClass]=\"{ 'layer-sidebar-visble': showLayerController }\">\n    <div class=\"fake-leaflet-control-lg\">\n      <a title=\"Edit Layers\" (click)=\"showLayerController = !showLayerController\">\n        <fa-icon [icon]=\"['fas', 'layer-group']\"></fa-icon>\n      </a>\n    </div>\n\n    <div class=\"fake-leaflet-control\" [ngClass]=\"{ active: showLayerValues }\">\n      <a title=\"Show Layer Values\" (click)=\"showLayerValues = !showLayerValues\">\n        <fa-icon [icon]=\"['fas', 'crosshairs']\"></fa-icon>\n      </a>\n    </div>\n\n    <!-- <div class=\"fake-leaflet-control\"\n      [ngClass]=\"{\n        active:\n          leafletMeasureDrawHandler !== undefined &&\n          leafletMeasureDrawHandler._enabled\n      }\">\n      <a title=\"Activate Ruler\"\n        (click)=\"toggleLeafletMeasurePlugin()\">\n        <fa-icon [icon]=\"['fas', 'ruler']\"></fa-icon>\n      </a>\n    </div> -->\n\n    <div id=\"layer-legends\"></div>\n  </div>\n\n  <p-sidebar [(visible)]=\"showLayerController\" position=\"right\" [modal]=\"false\" styleClass=\"layer-sidebar\">\n    <h1>Regions</h1>\n\n    <div class=\"sidebar-container sidebar-padding layer-sidebar-container\">\n      <!-- <h2>Map Base Layer</h2>\n\n      <div class=\"ui-grid ui-grid-responsive ui-fluid\">\n        <div class=\"ui-grid-row\">\n          <div class=\"ui-grid-col-12\">\n            <p-dropdown [options]=\"baseLayers\"\n              [(ngModel)]=\"baseLayerSelected\"\n              (ngModelChange)=\"updateLeafletLayers()\"\n              optionLabel=\"name\"></p-dropdown>\n          </div>\n        </div>\n      </div>\n\n      <br /> -->\n\n      <div [hidden]=\"currentJob === undefined || jobLayers.length === 0\">\n        <h2>Select Region</h2>\n\n        <p-orderList [value]=\"jobLayers\" [(selection)]=\"selectedLayers\" dragdrop=\"true\" dragdropScope=\"jobLayers\"\n          [listStyle]=\"{ height: 'fit-content', 'min-height': '150px' }\" controlsPosition=\"right\" (onReorder)=\"setLayerZOrder()\"\n          (click)=\"getSelectedLayer($event)\">\n          <ng-template let-layer pTemplate=\"item\">\n            <div class=\"ui-helper-clearfix\">\n              <a class=\"icon-toggle\" (click)=\"toggleLayerOpacity($event, layer)\" [ngClass]=\"layer.visible ? 'default-col' : 'secondary-col'\">\n                <fa-icon [icon]=\"['fas', 'eye']\" size=\"sm\" *ngIf=\"layer.visible\"></fa-icon>\n                <fa-icon [icon]=\"['fas', 'eye-slash']\" size=\"sm\" *ngIf=\"!layer.visible\"></fa-icon>\n              </a>\n              {{ layer.name }}\n            </div>\n          </ng-template>\n        </p-orderList>\n      </div>\n\n      <div *ngFor=\"let selectedLayer of selectedLayers\">\n        <h2>\n          <a style=\"color: inherit;\" (click)=\"toggleLayerOpacity($event, selectedLayer)\">\n            {{ selectedLayer.name }}\n          </a>\n          <a class=\"icon-toggle\" (click)=\"toggleLayerOpacity($event, selectedLayer)\" [ngClass]=\"selectedLayer.visible ? 'default-col' : 'secondary-col'\">\n            <fa-icon [icon]=\"['fas', 'eye']\" size=\"sm\" *ngIf=\"selectedLayer.visible\"></fa-icon>\n            <fa-icon [icon]=\"['fas', 'eye-slash']\" size=\"sm\" *ngIf=\"!selectedLayer.visible\"></fa-icon>\n          </a>\n        </h2>\n\n        <div *ngIf=\"selectedLayer.dimensionsArray !== undefined\">\n          <div *ngFor=\"let dimension of selectedLayer.dimensionsArray\">\n            <span class=\"label\">{{ dimension.label }}</span>\n            <p-dropdown [options]=\"dimension.options\" optionLabel=\"label\" [(ngModel)]=\"dimension.selected\"\n              (ngModelChange)=\"selectedLayer.updateLayer()\" [filter]=\"true\" [appendTo]=\"mapContainer\" baseZIndex=\"1400\">\n            </p-dropdown>\n          </div>\n        </div>\n\n        <div *ngIf=\"selectedLayer.filterValuesArray !== undefined\">\n          <div *ngFor=\"let filerValue of selectedLayer.filterValuesArray\">\n            <span class=\"label\"><b>{{ filerValue.label }}</b></span>\n            <div class=\"ui-grid\">\n              <div class=\"ui-grid-col-6\" style=\"padding-right: 5px\">\n                <span class=\"label\" style=\"margin-top: 0;\">Min value</span>\n                <input type=\"number\" pInputText placeholder=\"Minimum value\" [(ngModel)]=\"filerValue.minValue\"\n                  (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" [customValidator]=\"customFormValidators.floatValidator\" />\n              </div>\n              <div class=\"ui-grid-col-6\" style=\"padding-left: 5px\">\n                <span class=\"label\" style=\"margin-top: 0;\">Max value</span>\n                <input type=\"number\" pInputText placeholder=\"Maximum value\" [(ngModel)]=\"filerValue.maxValue\"\n                  (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" [customValidator]=\"customFormValidators.floatValidator\" />\n              </div>\n            </div>\n          </div>\n\n        </div>\n\n        <div *ngIf=\"\n            selectedLayer.downloadData !== undefined &&\n            !selectedLayer.downloadData.disabled\n          \">\n          <p-button *ngIf=\"isString(selectedLayer.downloadData.action)\" label=\"Download\" icon=\"pi pi-download\" iconPos=\"left\"\n            styleClass=\"ui-button-secondary\" (click)=\"\n              downloadUrl(selectedLayer.downloadData.action, 'image/tiff')\n            \"\n            pTooltip=\"{{ selectedLayer.downloadData.description }}\" tooltipPosition=\"top\" tooltipZIndex=\"1400\"></p-button>\n          <p-button *ngIf=\"isFunction(selectedLayer.downloadData.action)\" label=\"Download\" icon=\"pi pi-download\"\n            iconPos=\"left\" styleClass=\"ui-button-secondary\" (click)=\"selectedLayer.downloadData.action($event)\"\n            pTooltip=\"{{ selectedLayer.downloadData.description }}\" tooltipPosition=\"top\" tooltipZIndex=\"1400\"></p-button>\n\n          <span *ngIf=\"\n              isString(selectedLayer.downloadData.metadata) &&\n              selectedLayer.downloadData.metadata !== ''\n            \">\n            <p-dialog header=\"{{ selectedLayer.name }} metadata\" [(visible)]=\"showLayerMetadataPopup\" appendTo=\"body\"\n              baseZIndex=\"1500\" modal=\"true\" styleClass=\"modal-dialog\" dismissableMask=\"true\" [closeOnEscape]=\"false\">\n              <pre>{{ selectedLayer.downloadData.metadata }}</pre>\n            </p-dialog>\n            &nbsp;\n\n            <p-button type=\"button\" (click)=\"showLayerMetadataPopup = !showLayerMetadataPopup\" icon=\"pi pi-info-circle\"\n              label=\"View metadata\" iconPos=\"left\" styleClass=\"ui-button-secondary\"></p-button>\n          </span>\n        </div>\n        <div class=\"line_break\"></div>\n        <h3>Scenario Settings</h3>\n        <div *ngIf=\"\n        selectedLayer.fire !== undefined &&\n        selectedLayer.fire.options.length > 0\n        \">\n          <span class=\"label\">Fire</span>\n          <p-dropdown [options]=\"selectedLayer.fire.options\" optionLabel=\"name\" [filter]=\"true\" [appendTo]=\"mapContainer\"\n            baseZIndex=\"1400\" (onChange)=\"getSelectedFire($event)\">\n          </p-dropdown>\n        </div>\n\n        <div *ngIf=\"\n        selectedLayer.population !== undefined &&\n        selectedLayer.population.options.length > 0\n      \">\n          <span class=\"label\">Population</span>\n          <p-dropdown [options]=\"selectedLayer.population.options\" optionLabel=\"name\" [filter]=\"true\" [appendTo]=\"mapContainer\"\n            baseZIndex=\"1400\" (onChange)=\"getSelectedPopulation($event)\">\n          </p-dropdown>\n        </div>\n\n        <div *ngIf=\"\n        selectedLayer.time !== undefined\">\n          <span class=\"label\">Time {{timeFromSlider}}</span>\n\n          <p-slider [(ngModel)]=\"timeSliderStep\" [min]=\"0\" [max]=\"1440\" [step]=\"10\" (onChange)=\"getSelectedTime($event)\"></p-slider>\n        </div>\n\n        <div>\n          <a class=\"icon-toggle\" (click)=\"showZoneLayers()\">\n            <fa-icon [icon]=\"['fas', 'eye']\" size=\"sm\" *ngIf=\"zoneVisibility\"></fa-icon>\n            <fa-icon [icon]=\"['fas', 'eye-slash']\" size=\"sm\" style=\"color:gray\" *ngIf=\"!zoneVisibility\"></fa-icon>\n          </a>\n          <span class=\"label\"> Select Zones for Evacuation Messages</span>\n        </div>\n\n        <div>\n\n          <p-button *ngIf=\"enteredEvacMessages.length > 0\" label=\"Message List\" styleClass=\"ui-button-info\" (click)=\"showMessageListDialog()\"></p-button>\n          <p-button *ngIf=\"\n            enteredEvacMessages.length==0\" label=\"Message List\" disabled=\"true\" styleClass=\"ui-button-info\"></p-button>\n\n        </div>\n\n\n\n        <div *ngIf=\"\n            selectedLayer.speed !== undefined\">\n          <span class=\"label\">Maximum speed on roads {{selectedLayer.speed}}%</span>\n\n          <p-slider [(ngModel)]=\"selectedLayer.speed\" [min]=\"0\" [max]=\"100\" [step]=\"10\" (onChange)=\"getMaxSpeed($event)\"></p-slider>\n        </div>\n        <h3>Map & Layers Settings</h3>\n        <div>\n          <span class=\"ui-grid-col-4\" style=\"margin-bottom: 4px\">Map Style </span>\n          <p-dropdown class=\"ui-grid-col-8\" [options]=\"mapStyles.options\" optionLabel=\"style\" baseZIndex=\"1400\"\n            (onChange)=\"changeMapStyle($event)\" [appendTo]=\"mapContainer\" [style]=\"{'margin-bottom': '5px'}\">\n          </p-dropdown>\n        </div>\n        <div>\n          <span class=\"label\">Road Network Opacity</span>\n\n          <p-slider [(ngModel)]=\"selectedLayer.opacity\" [min]=\"0\" [max]=\"100\"></p-slider>\n        </div>\n        <!-- <div *ngIf=\"\n        selectedLayer.evacMessage!== undefined &&\n        selectedLayer.evacMessage.options.length > 0\n        \">\n          <span class=\"label\">Evacuation Message</span>\n          <p-dropdown [options]=\"selectedLayer.evacMessage.options\" optionLabel=\"message\" [filter]=\"true\" [appendTo]=\"mapContainer\"\n            baseZIndex=\"1400\" (onChange)=\"getEvacMessage($event)\">\n          </p-dropdown>\n        </div> -->\n\n\n\n        <div *ngIf=\"\n            selectedLayer.blendMode !== undefined &&\n            selectedLayer.blendModes.length > 0\n          \">\n          <span class=\"label\">Blend mode</span>\n          <p-dropdown [options]=\"selectedLayer.blendModes\" optionLabel=\"name\" [(ngModel)]=\"selectedLayer.blendMode\"\n            (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" [filter]=\"true\" [appendTo]=\"mapContainer\" baseZIndex=\"1400\">\n          </p-dropdown>\n        </div>\n\n\n        <div *ngIf=\"\n            selectedLayer.colourScheme !== undefined &&\n            selectedLayer.colourScheme.type === 'SolidColourScheme'\n          \">\n          <span class=\"label\"><b>Colour scale</b></span>\n          <p-colorPicker [(ngModel)]=\"selectedLayer.colourScheme.solidColour\" (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\"\n            [appendTo]=\"mapContainer\" baseZIndex=\"1400\"></p-colorPicker>\n        </div>\n\n        <div *ngIf=\"\n            selectedLayer.colourScheme !== undefined &&\n            selectedLayer.colourScheme.type === 'D3ColourScheme'\n          \">\n          <span class=\"label\"><b>Colour scale</b></span>\n          <p-dropdown [options]=\"selectedLayer.colourScheme.predefinedSchemes\" optionLabel=\"name\" [(ngModel)]=\"selectedLayer.colourScheme.predefinedScheme\"\n            (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" [filter]=\"true\" [appendTo]=\"mapContainer\" baseZIndex=\"1400\">\n            <!-- <ng-template let-colourScheme pTemplate=\"item\">\n            {{colourScheme.name}}\n          </ng-template> -->\n          </p-dropdown>\n          <br /><br />\n          <p-toggleButton onLabel=\"Reversed\" offLabel=\"Reverse\" onIcon=\"pi pi-check\" offIcon=\"pi pi-times\" [(ngModel)]=\"selectedLayer.colourScheme.reversed\"\n            (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\"></p-toggleButton>\n        </div>\n\n        <div *ngIf=\"\n            selectedLayer.colourByProperty !== undefined &&\n            selectedLayer.colourByProperty.options.length > 0\n          \">\n          <span class=\"label\">Colour by</span>\n\n          <p-dropdown [options]=\"selectedLayer.colourByProperty.options\" [(ngModel)]=\"selectedLayer.colourByProperty.selected\"\n            (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" optionLabel=\"label\"></p-dropdown>\n        </div>\n\n        <div *ngIf=\"\n            selectedLayer.minValue !== undefined &&\n            selectedLayer.maxValue !== undefined\n          \">\n          <div *ngIf=\"selectedLayer.valueTransformation !== undefined\">\n            <span class=\"label\">Min value</span>\n            <input type=\"number\" pInputText placeholder=\"Minimum value\" [(ngModel)]=\"selectedLayer.minValueTransformed\"\n              (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" required [customValidator]=\"customFormValidators.floatValidator\" />\n            <br /><span class=\"label\">Max value</span>\n            <input type=\"number\" pInputText placeholder=\"Maximum value\" [(ngModel)]=\"selectedLayer.maxValueTransformed\"\n              (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" required [customValidator]=\"customFormValidators.floatValidator\" />\n          </div>\n          <div *ngIf=\"selectedLayer.valueTransformation === undefined\">\n            <span class=\"label\">Min value</span>\n            <input type=\"number\" pInputText placeholder=\"Minimum value\" [(ngModel)]=\"selectedLayer.minValue\"\n              (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" required [customValidator]=\"customFormValidators.floatValidator\" />\n            <br /><span class=\"label\">Max value</span>\n            <input type=\"number\" pInputText placeholder=\"Maximum value\" [(ngModel)]=\"selectedLayer.maxValue\"\n              (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" required [customValidator]=\"customFormValidators.floatValidator\" />\n          </div>\n        </div>\n\n      </div>\n\n      <br /><br />\n    </div>\n  </p-sidebar>\n\n  <p-sidebar [(visible)]=\"showChartController\" position=\"bottom\" [modal]=\"false\" styleClass=\"chart-sidebar height-fit-content\">\n    <h3>Result</h3>\n\n    <div id=\"chart-container\">\n      <div id=\"chart\"></div>\n    </div>\n  </p-sidebar>\n\n  <!-- \n  \n        <a  *ngIf=\"currentJob !== undefined\"\n          class=\"leaflet-toolbar-icon leaflet-toolbar-icon-custom\"\n          title=\"Zoom to extent\"\n          (click)=\"zoomToJobBbox()\">\n          <fa-icon [icon]=\"['fas', 'search']\"\n            size=\"sm\"></fa-icon>\n        </a>\n     -->\n\n\n  <div id=\"edit-feature-controller\" [ngClass]=\"{\n      hidden: jobLayers.length === 0 || currentJob === undefined\n    }\">\n    <div class=\"fake-leaflet-control-lg\" *ngIf=\"currentChart !== undefined\">\n      <a title=\"Show Chart\" (click)=\"showChartController = !showChartController\">\n        <fa-icon [icon]=\"['fas', 'poll']\"></fa-icon>\n      </a>\n    </div>\n\n    <!-- <div class=\"mapboxgl-ctrl mapboxgl-ctrl-group\">\n      <button class=\"mapboxgl-ctrl-icon\"></button>\n      </div> -->\n    <div class=\"mapboxgl-ctrl mapboxgl-ctrl-group\">\n      <button *ngFor=\"let toolbarButton of editableFeatureToolbarButtons\" class=\"mapboxgl-ctrl-icon\" [title]=\"toolbarButton.title\"\n        (click)=\"toolbarButton.createNewFn()\">\n        <fa-icon [icon]=\"toolbarButton.primaryFaIcon\" size=\"sm\" [ngClass]=\"{\n                'draw-fire-icon': toolbarButton.secondaryFaIcon !== undefined\n              }\"></fa-icon>\n        <fa-icon *ngIf=\"toolbarButton.secondaryFaIcon !== undefined\" [icon]=\"toolbarButton.secondaryFaIcon\" size=\"xs\"\n          class=\"secondary-draw-fire-icon\"></fa-icon>\n      </button>\n    </div>\n\n    <div class=\"mapboxgl-ctrl mapboxgl-ctrl-group\" *ngIf=\"editableFeatureToolbarButtons.length > 0\">\n      <button class=\"mapboxgl-ctrl-icon\" title=\"Edit features\" (click)=\"toggleFeatureEdit()\" #mapboxDrawEditButton>\n        <fa-icon [icon]=\"['fas', 'pen']\" size=\"sm\"></fa-icon>\n\n      </button>\n    </div>\n  </div>\n  <div class=\"legend-overlay\" *ngIf=\"activities != null\">\n    <div class=\"legend-overlay-inner\">\n      <table id=\"pop-legend\" cellspacing=\"3px\">\n        <tbody>\n          <tr *ngFor=\"let data of activities | keyvalue\">\n            <td class=\"p-2\">\n              <input type=\"color\" disabled=\"disabled\" value={{data.value}}>\n            </td>\n            <td>\n              {{data.key}}\n            </td>\n          </tr>\n        </tbody>\n\n      </table>\n    </div>\n  </div>\n\n  <!-- Play button + Digital clock-->\n  <div id=\"simulation-play\" class=\"\" [ngStyle]=\"{'bottom': showChartController ? '300px' : '10px'}\" *ngIf=\"currentJob !== undefined &&  jobType =='emv2' && currentJob.status == 'FINISHED' \">\n    <a title=\"Play\" (click)=\"playSimulation()\">\n      <fa-icon [icon]=\"['fas','stop']\" *ngIf=\"isPlaying\"></fa-icon>\n      <fa-icon [icon]=\"['fas', 'play']\" *ngIf=\"!isPlaying\"></fa-icon> {{simulationStatus}} {{clock}}\n    </a>\n    <br><br>animation speed {{animationSpeed}}x<br><br>\n    <div class=\"\" *ngIf=\"currentJob !== undefined &&  jobType =='emv2' && currentJob.status == 'FINISHED' \">\n\n\n      <p-slider [(ngModel)]=\"this.animationSpeed\" [min]=\"0\" [max]=\"100\" [step]=\"10\" (onChange)=\"setAnimationSpeed($event)\"></p-slider>\n\n\n    </div>\n  </div>\n  <!-- Animation speed controller -->\n\n\n  <div id=\"timeline-controller\" class=\"fake-leaflet-control-colours\" [ngStyle]=\"{'bottom': showChartController ? '300px' : '10px'}\"\n    *ngIf=\"currentJob !== undefined && timeSliders.length !== 0\">\n    <div class=\"timeline\" [ngClass]=\"{\n        hidden: !(\n          currentJob.status === 'FINISHED' &&\n          arrivalTimeContourLayer !== undefined\n        )\n      }\"\n      *ngFor=\"let timeSlider of timeSliders\">\n      <span class=\"time-slider-label\">\n        <fa-icon [icon]=\"['fas', 'clock']\" size=\"sm\"></fa-icon>\n        &nbsp;Time\n      </span>\n      <p-slider [(ngModel)]=\"timeSlider.value\" [min]=\"timeSlider.min\" [max]=\"timeSlider.max\" [step]=\"timeSlider.step\"\n        class=\"time-slider\"></p-slider>\n      <!-- <input class=\"time-input\" type=\"number\" pInputText [(ngModel)]=\"timeSliderValue\" (ngModelChange)=\"timeSliderChange($event)\"/>\n    <span class=\"time-slider-label\">&nbsp; second{{(timeSliderValue !== 1) ? 's' : ''}}</span> -->\n      <!-- (ngModelChange)=\"timeSliderDateChange($event)\" -->\n      <p-calendar [(ngModel)]=\"timeSlider.valueDate\" showTime=\"true\" hourFormat=\"24\" showIcon=\"true\" class=\"p-autocomplete\"\n        inputStyleClass=\"time-input\" [minDate]=\"timeSlider.minDate\" [maxDate]=\"timeSlider.maxDate\" appendTo=\"body\"></p-calendar>\n    </div>\n  </div>\n  <p-dialog header=\"Evacuation Messages\" [(visible)]=\"emergencyMessageDialog\" widgetVar=\"dlg2\" modal=\"true\" appendTo=\"body\"\n    position=\"top\">\n    <h3> List your messages here </h3>\n\n    <div class=\"ui-inputgroup\">\n      <input type=\"text\" pInputText [(ngModel)]=\"broadcastZoneString\" disabled=\"true\" [style]=\"{'margin':'2px'}\" />\n    </div>\n    <div class=\"ui-inputgroup\">\n      <span class=\"ui-grid-col-5\" [style]=\"{'margin':'2px'}\">Time </span>\n      <p-calendar class=\"ui-grid-col-7\" [(ngModel)]=\"selectedMessageSendTime\" showTime=\"true\" hourFormat=\"24\" timeOnly=\"true\"\n        [style]=\"{'margin':'2px','margin-right':'-10%' }\" (ngModelChange)=\"updateErrorMessagesTime()\" [stepMinute]=\"15\"></p-calendar><br>\n    </div>\n    <div class=\"ui-inputgroup\">\n      <span class=\"ui-grid-col-6\" [style]=\"{'margin': '2px'}\">Message Type </span>\n      <p-dropdown class=\"ui-grid-col-6\" [(ngModel)]=\"selectedEvacMessage\" [options]=\"evacMessages.options\" optionLabel=\"message\"\n        baseZIndex=\"1400\" [style]=\"{'margin': '2px'}\" (ngModelChange)=\"updateErrorMessagesType()\">\n      </p-dropdown> <br>\n    </div>\n    <div class=\"ui-inputgroup\">\n      <textarea [rows]=\"3\" [cols]=\"60\" pInputTextarea autoResize=\"autoResize\" [(ngModel)]=\"messageContent\" placeholder=\"Content\"></textarea>\n    </div>\n    <ul>\n      <li *ngIf=\"Errors.messageType\" class=\"ui-message ui-messages-error\">\n        Please select a Evacuation Message type\n      </li>\n      <li *ngIf=\"Errors.time\" class=\"ui-message ui-messages-error\">\n        Please select a Time\n      </li>\n      <li *ngIf=\"Errors.content\" class=\"ui-message ui-messages-error\">\n        Please add a content to this message\n      </li>\n      <li *ngIf=\"Errors.duplicate\" class=\"ui-message ui-messages-error\">\n        Duplicate Entry\n      </li>\n    </ul>\n\n    <p-listbox [options]=\"enteredEvacMessages\">\n      <ng-template let-enteredEvacMessage let-i=\"index\" pTemplate=\"item\">\n        <div class=\"ui-helper-clearfix\">\n          <span>{{i+1}}) </span>\n          <span>{{enteredEvacMessage.broadcastHHMM}} </span>\n          <span>{{enteredEvacMessage.type}} </span>\n          <span>{{enteredEvacMessage.broadcastZones}} </span>\n\n          <a title=\"Delete Message\" class=\"icon-link\" (click)=\"deleteMessage(i)\" disabled>\n            <fa-icon [icon]=\"['fas', 'trash']\"></fa-icon>\n          </a>\n        </div>\n      </ng-template>\n    </p-listbox>\n    <p-footer>\n      <button type=\"button\" pButton icon=\"pi pi-times\" (click)=\"showEmergencyMessageDialog()\" label=\"Cancel\" class=\"ui-button-secondary\"></button>\n      <button type=\"button\" pButton icon=\"pi pi-check\" (click)=\"addNewMessage()\" label=\"Add\"></button>\n    </p-footer>\n  </p-dialog>\n\n  <p-dialog header=\"Message List\" [(visible)]=\"messageListDialog\" widgetVar=\"dlg2\" modal=\"true\" appendTo=\"body\"\n    position=\"top\">\n\n    <p-listbox [options]=\"enteredEvacMessages\">\n      <ng-template let-enteredEvacMessage let-i=\"index\" pTemplate=\"item\">\n        <div>\n          <span>{{i+1}}) </span>\n          <span>{{enteredEvacMessage.broadcastHHMM}} </span>\n          <span>{{enteredEvacMessage.type}} </span>\n          <span>{{enteredEvacMessage.broadcastZones}} </span>\n\n          <a title=\"Delete Message\" class=\"icon-link\" (click)=\"deleteMessage(i)\" disabled>\n            <fa-icon [icon]=\"['fas', 'trash']\"></fa-icon>\n          </a>\n        </div>\n      </ng-template>\n    </p-listbox>\n  </p-dialog>\n\n\n  <div id=\"map\"></div>\n\n  <svg class=\"svg-overlay\"></svg>\n\n  <!-- https://research.csiro.au/geoweb/ -->\n  <div class=\"map-logo\">\n\n\n    <img src=\"assets/img/logo/favicon.ico\" alt=\"INDRA Logo\" class=\"map-logo-img\" />\n    <div class=\"logo-text\"></div>\n  </div>\n</div>"
+module.exports = "<app-map-popup #mapPopup></app-map-popup>\n\n<div id=\"map-container\" #mapContainer>\n  <div id=\"top-right-controls\" [ngClass]=\"{ 'layer-sidebar-visble': showLayerController }\">\n    <div class=\"fake-leaflet-control-lg\">\n      <a title=\"Edit Layers\" (click)=\"showLayerController = !showLayerController\">\n        <fa-icon [icon]=\"['fas', 'layer-group']\"></fa-icon>\n      </a>\n    </div>\n\n    <div class=\"fake-leaflet-control\" [ngClass]=\"{ active: showLayerValues }\">\n      <a title=\"Show Layer Values\" (click)=\"showLayerValues = !showLayerValues\">\n        <fa-icon [icon]=\"['fas', 'crosshairs']\"></fa-icon>\n      </a>\n    </div>\n\n    <!-- <div class=\"fake-leaflet-control\"\n      [ngClass]=\"{\n        active:\n          leafletMeasureDrawHandler !== undefined &&\n          leafletMeasureDrawHandler._enabled\n      }\">\n      <a title=\"Activate Ruler\"\n        (click)=\"toggleLeafletMeasurePlugin()\">\n        <fa-icon [icon]=\"['fas', 'ruler']\"></fa-icon>\n      </a>\n    </div> -->\n\n    <div id=\"layer-legends\"></div>\n  </div>\n\n  <p-sidebar [(visible)]=\"showLayerController\" position=\"right\" [modal]=\"false\" styleClass=\"layer-sidebar\">\n    <h1>Regions</h1>\n\n    <div class=\"sidebar-container sidebar-padding layer-sidebar-container\">\n      <!-- <h2>Map Base Layer</h2>\n\n      <div class=\"ui-grid ui-grid-responsive ui-fluid\">\n        <div class=\"ui-grid-row\">\n          <div class=\"ui-grid-col-12\">\n            <p-dropdown [options]=\"baseLayers\"\n              [(ngModel)]=\"baseLayerSelected\"\n              (ngModelChange)=\"updateLeafletLayers()\"\n              optionLabel=\"name\"></p-dropdown>\n          </div>\n        </div>\n      </div>\n\n      <br /> -->\n\n      <div [hidden]=\"currentJob === undefined || jobLayers.length === 0\">\n        <h2>Select a region</h2>\n\n        <p-orderList [value]=\"jobLayers\" [(selection)]=\"selectedLayers\" dragdrop=\"true\" dragdropScope=\"jobLayers\"\n          [listStyle]=\"{ height: 'fit-content', 'min-height': '150px' }\" controlsPosition=\"right\" (onReorder)=\"setLayerZOrder()\"\n          (click)=\"getSelectedLayer($event)\">\n          <ng-template let-layer pTemplate=\"item\">\n            <div class=\"ui-helper-clearfix\">\n              <a class=\"icon-toggle\" (click)=\"toggleLayerOpacity($event, layer)\" [ngClass]=\"layer.visible ? 'default-col' : 'secondary-col'\">\n                <fa-icon [icon]=\"['fas', 'eye']\" size=\"sm\" *ngIf=\"layer.visible\"></fa-icon>\n                <fa-icon [icon]=\"['fas', 'eye-slash']\" size=\"sm\" *ngIf=\"!layer.visible\"></fa-icon>\n              </a>\n              {{ layer.name }}\n            </div>\n          </ng-template>\n        </p-orderList>\n      </div>\n\n      <div *ngFor=\"let selectedLayer of selectedLayers\">\n        <h2>\n          <a style=\"color: inherit;\" (click)=\"toggleLayerOpacity($event, selectedLayer)\">\n            {{ selectedLayer.name }}\n          </a>\n          <a class=\"icon-toggle\" (click)=\"toggleLayerOpacity($event, selectedLayer)\" [ngClass]=\"selectedLayer.visible ? 'default-col' : 'secondary-col'\">\n            <fa-icon [icon]=\"['fas', 'eye']\" size=\"sm\" *ngIf=\"selectedLayer.visible\"></fa-icon>\n            <fa-icon [icon]=\"['fas', 'eye-slash']\" size=\"sm\" *ngIf=\"!selectedLayer.visible\"></fa-icon>\n          </a>\n        </h2>\n\n        <div *ngIf=\"selectedLayer.dimensionsArray !== undefined\">\n          <div *ngFor=\"let dimension of selectedLayer.dimensionsArray\">\n            <span class=\"label\">{{ dimension.label }}</span>\n            <p-dropdown [options]=\"dimension.options\" optionLabel=\"label\" [(ngModel)]=\"dimension.selected\"\n              (ngModelChange)=\"selectedLayer.updateLayer()\" [filter]=\"true\" [appendTo]=\"mapContainer\" baseZIndex=\"1400\">\n            </p-dropdown>\n          </div>\n        </div>\n\n        <div *ngIf=\"selectedLayer.filterValuesArray !== undefined\">\n          <div *ngFor=\"let filerValue of selectedLayer.filterValuesArray\">\n            <span class=\"label\"><b>{{ filerValue.label }}</b></span>\n            <div class=\"ui-grid\">\n              <div class=\"ui-grid-col-6\" style=\"padding-right: 5px\">\n                <span class=\"label\" style=\"margin-top: 0;\">Min value</span>\n                <input type=\"number\" pInputText placeholder=\"Minimum value\" [(ngModel)]=\"filerValue.minValue\"\n                  (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" [customValidator]=\"customFormValidators.floatValidator\" />\n              </div>\n              <div class=\"ui-grid-col-6\" style=\"padding-left: 5px\">\n                <span class=\"label\" style=\"margin-top: 0;\">Max value</span>\n                <input type=\"number\" pInputText placeholder=\"Maximum value\" [(ngModel)]=\"filerValue.maxValue\"\n                  (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" [customValidator]=\"customFormValidators.floatValidator\" />\n              </div>\n            </div>\n          </div>\n\n        </div>\n\n        <div *ngIf=\"\n            selectedLayer.downloadData !== undefined &&\n            !selectedLayer.downloadData.disabled\n          \">\n          <p-button *ngIf=\"isString(selectedLayer.downloadData.action)\" label=\"Download\" icon=\"pi pi-download\" iconPos=\"left\"\n            styleClass=\"ui-button-secondary\" (click)=\"\n              downloadUrl(selectedLayer.downloadData.action, 'image/tiff')\n            \"\n            pTooltip=\"{{ selectedLayer.downloadData.description }}\" tooltipPosition=\"top\" tooltipZIndex=\"1400\"></p-button>\n          <p-button *ngIf=\"isFunction(selectedLayer.downloadData.action)\" label=\"Download\" icon=\"pi pi-download\"\n            iconPos=\"left\" styleClass=\"ui-button-secondary\" (click)=\"selectedLayer.downloadData.action($event)\"\n            pTooltip=\"{{ selectedLayer.downloadData.description }}\" tooltipPosition=\"top\" tooltipZIndex=\"1400\"></p-button>\n\n          <span *ngIf=\"\n              isString(selectedLayer.downloadData.metadata) &&\n              selectedLayer.downloadData.metadata !== ''\n            \">\n            <p-dialog header=\"{{ selectedLayer.name }} metadata\" [(visible)]=\"showLayerMetadataPopup\" appendTo=\"body\"\n              baseZIndex=\"1500\" modal=\"true\" styleClass=\"modal-dialog\" dismissableMask=\"true\" [closeOnEscape]=\"false\">\n              <pre>{{ selectedLayer.downloadData.metadata }}</pre>\n            </p-dialog>\n            &nbsp;\n\n            <p-button type=\"button\" (click)=\"showLayerMetadataPopup = !showLayerMetadataPopup\" icon=\"pi pi-info-circle\"\n              label=\"View metadata\" iconPos=\"left\" styleClass=\"ui-button-secondary\"></p-button>\n          </span>\n        </div>\n        <div class=\"line_break\"></div>\n        <h3>Scenario Settings</h3>\n        <div *ngIf=\"\n        selectedLayer.fire !== undefined &&\n        selectedLayer.fire.options.length > 0\n        \">\n          <span class=\"label\">Fire</span>\n          <p-dropdown [options]=\"selectedLayer.fire.options\" optionLabel=\"name\" [filter]=\"true\" [appendTo]=\"mapContainer\"\n            baseZIndex=\"1400\" (onChange)=\"getSelectedFire($event)\">\n          </p-dropdown>\n        </div>\n\n        <div *ngIf=\"\n        selectedLayer.population !== undefined &&\n        selectedLayer.population.options.length > 0\n      \">\n          <span class=\"label\">Population</span>\n          <p-dropdown [options]=\"selectedLayer.population.options\" optionLabel=\"name\" [filter]=\"true\" [appendTo]=\"mapContainer\"\n            baseZIndex=\"1400\" (onChange)=\"getSelectedPopulation($event)\">\n          </p-dropdown>\n        </div>\n\n        <div *ngIf=\"\n        selectedLayer.time !== undefined\">\n          <span class=\"label\">Time {{timeFromSlider}}</span>\n\n          <p-slider [(ngModel)]=\"timeSliderStep\" [min]=\"0\" [max]=\"1440\" [step]=\"10\" (onChange)=\"getSelectedTime($event)\"></p-slider>\n        </div>\n\n        <div>\n          <a class=\"icon-toggle\" (click)=\"showZoneLayers()\">\n            <fa-icon [icon]=\"['fas', 'eye']\" size=\"sm\" *ngIf=\"zoneVisibility\"></fa-icon>\n            <fa-icon [icon]=\"['fas', 'eye-slash']\" size=\"sm\" style=\"color:gray\" *ngIf=\"!zoneVisibility\"></fa-icon>\n          </a>\n          <span class=\"label\"> Show Evacuation Zones</span>\n        </div>\n\n        <div [hidden]=\"currentJob === undefined || jobLayers.length === 0\">\n          <h2>Evacuation Plan</h2>\n\n          <p-listbox [options]=\"messageListOptions\" [(ngModel)]=\"selectedMessage\" [style]=\"{'width':'100%','height':\n            '100px' }\"\n            [listStyle]=\"{'max-height': '100px'}\">\n            <ng-template let-enteredEvacMessage let-i=\"index\" pTemplate=\"item\">\n              <div class=\"ui-helper-clearfix\">\n\n                <a class=\"icon-link\" (click)=\"highlightZone(i)\" (dblclick)=\"editMessageDialog(i)\">\n                  {{enteredEvacMessage.label}} : {{enteredEvacMessage.type}}\n                </a>\n                <a title=\"Delete Message\" class=\"icon-link\" (click)=\"deleteMessage(i)\" disabled>\n                  <fa-icon [icon]=\"['fas', 'trash']\"></fa-icon>\n                </a>\n              </div>\n            </ng-template>\n          </p-listbox>\n        </div>\n\n\n\n        <div *ngIf=\"\n            selectedLayer.speed !== undefined\">\n          <span class=\"label\">Maximum speed on roads {{selectedLayer.speed}}%</span>\n\n          <p-slider [(ngModel)]=\"selectedLayer.speed\" [min]=\"0\" [max]=\"100\" [step]=\"10\" (onChange)=\"getMaxSpeed($event)\"></p-slider>\n        </div>\n        <h3>Map & Layers Settings</h3>\n        <div>\n          <span class=\"ui-grid-col-4\" style=\"margin-bottom: 4px\">Map Style </span>\n          <p-dropdown class=\"ui-grid-col-8\" [options]=\"mapStyles.options\" optionLabel=\"style\" baseZIndex=\"1400\"\n            (onChange)=\"changeMapStyle($event)\" [appendTo]=\"mapContainer\" [style]=\"{'margin-bottom': '5px'}\">\n          </p-dropdown>\n        </div>\n        <div>\n          <span class=\"label\">Road Network Opacity</span>\n\n          <p-slider [(ngModel)]=\"selectedLayer.opacity\" [min]=\"0\" [max]=\"100\"></p-slider>\n        </div>\n        <!-- <div *ngIf=\"\n        selectedLayer.evacMessage!== undefined &&\n        selectedLayer.evacMessage.options.length > 0\n        \">\n          <span class=\"label\">Evacuation Message</span>\n          <p-dropdown [options]=\"selectedLayer.evacMessage.options\" optionLabel=\"message\" [filter]=\"true\" [appendTo]=\"mapContainer\"\n            baseZIndex=\"1400\" (onChange)=\"getEvacMessage($event)\">\n          </p-dropdown>\n        </div> -->\n\n\n\n        <div *ngIf=\"\n            selectedLayer.blendMode !== undefined &&\n            selectedLayer.blendModes.length > 0\n          \">\n          <span class=\"label\">Blend mode</span>\n          <p-dropdown [options]=\"selectedLayer.blendModes\" optionLabel=\"name\" [(ngModel)]=\"selectedLayer.blendMode\"\n            (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" [filter]=\"true\" [appendTo]=\"mapContainer\" baseZIndex=\"1400\">\n          </p-dropdown>\n        </div>\n\n\n        <div *ngIf=\"\n            selectedLayer.colourScheme !== undefined &&\n            selectedLayer.colourScheme.type === 'SolidColourScheme'\n          \">\n          <span class=\"label\"><b>Colour scale</b></span>\n          <p-colorPicker [(ngModel)]=\"selectedLayer.colourScheme.solidColour\" (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\"\n            [appendTo]=\"mapContainer\" baseZIndex=\"1400\"></p-colorPicker>\n        </div>\n\n        <div *ngIf=\"\n            selectedLayer.colourScheme !== undefined &&\n            selectedLayer.colourScheme.type === 'D3ColourScheme'\n          \">\n          <span class=\"label\"><b>Colour scale</b></span>\n          <p-dropdown [options]=\"selectedLayer.colourScheme.predefinedSchemes\" optionLabel=\"name\" [(ngModel)]=\"selectedLayer.colourScheme.predefinedScheme\"\n            (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" [filter]=\"true\" [appendTo]=\"mapContainer\" baseZIndex=\"1400\">\n            <!-- <ng-template let-colourScheme pTemplate=\"item\">\n            {{colourScheme.name}}\n          </ng-template> -->\n          </p-dropdown>\n          <br /><br />\n          <p-toggleButton onLabel=\"Reversed\" offLabel=\"Reverse\" onIcon=\"pi pi-check\" offIcon=\"pi pi-times\" [(ngModel)]=\"selectedLayer.colourScheme.reversed\"\n            (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\"></p-toggleButton>\n        </div>\n\n        <div *ngIf=\"\n            selectedLayer.colourByProperty !== undefined &&\n            selectedLayer.colourByProperty.options.length > 0\n          \">\n          <span class=\"label\">Colour by</span>\n\n          <p-dropdown [options]=\"selectedLayer.colourByProperty.options\" [(ngModel)]=\"selectedLayer.colourByProperty.selected\"\n            (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" optionLabel=\"label\"></p-dropdown>\n        </div>\n\n        <div *ngIf=\"\n            selectedLayer.minValue !== undefined &&\n            selectedLayer.maxValue !== undefined\n          \">\n          <div *ngIf=\"selectedLayer.valueTransformation !== undefined\">\n            <span class=\"label\">Min value</span>\n            <input type=\"number\" pInputText placeholder=\"Minimum value\" [(ngModel)]=\"selectedLayer.minValueTransformed\"\n              (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" required [customValidator]=\"customFormValidators.floatValidator\" />\n            <br /><span class=\"label\">Max value</span>\n            <input type=\"number\" pInputText placeholder=\"Maximum value\" [(ngModel)]=\"selectedLayer.maxValueTransformed\"\n              (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" required [customValidator]=\"customFormValidators.floatValidator\" />\n          </div>\n          <div *ngIf=\"selectedLayer.valueTransformation === undefined\">\n            <span class=\"label\">Min value</span>\n            <input type=\"number\" pInputText placeholder=\"Minimum value\" [(ngModel)]=\"selectedLayer.minValue\"\n              (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" required [customValidator]=\"customFormValidators.floatValidator\" />\n            <br /><span class=\"label\">Max value</span>\n            <input type=\"number\" pInputText placeholder=\"Maximum value\" [(ngModel)]=\"selectedLayer.maxValue\"\n              (ngModelChange)=\"renderUpdatedLayer(selectedLayer)\" required [customValidator]=\"customFormValidators.floatValidator\" />\n          </div>\n        </div>\n\n      </div>\n\n      <br /><br />\n    </div>\n  </p-sidebar>\n\n  <p-sidebar [(visible)]=\"showChartController\" position=\"bottom\" [modal]=\"false\" styleClass=\"chart-sidebar height-fit-content\">\n    <h3>Result</h3>\n\n    <div id=\"chart-container\">\n      <div id=\"chart\"></div>\n    </div>\n  </p-sidebar>\n\n  <!-- \n  \n        <a  *ngIf=\"currentJob !== undefined\"\n          class=\"leaflet-toolbar-icon leaflet-toolbar-icon-custom\"\n          title=\"Zoom to extent\"\n          (click)=\"zoomToJobBbox()\">\n          <fa-icon [icon]=\"['fas', 'search']\"\n            size=\"sm\"></fa-icon>\n        </a>\n     -->\n\n\n  <div id=\"edit-feature-controller\" [ngClass]=\"{\n      hidden: jobLayers.length === 0 || currentJob === undefined\n    }\">\n    <div class=\"fake-leaflet-control-lg\" *ngIf=\"currentChart !== undefined\">\n      <a title=\"Show Chart\" (click)=\"showChartController = !showChartController\">\n        <fa-icon [icon]=\"['fas', 'poll']\"></fa-icon>\n      </a>\n    </div>\n\n    <!-- <div class=\"mapboxgl-ctrl mapboxgl-ctrl-group\">\n      <button class=\"mapboxgl-ctrl-icon\"></button>\n      </div> -->\n    <div class=\"mapboxgl-ctrl mapboxgl-ctrl-group\">\n      <button *ngFor=\"let toolbarButton of editableFeatureToolbarButtons\" class=\"mapboxgl-ctrl-icon\" [title]=\"toolbarButton.title\"\n        (click)=\"toolbarButton.createNewFn()\">\n        <fa-icon [icon]=\"toolbarButton.primaryFaIcon\" size=\"sm\" [ngClass]=\"{\n                'draw-fire-icon': toolbarButton.secondaryFaIcon !== undefined\n              }\"></fa-icon>\n        <fa-icon *ngIf=\"toolbarButton.secondaryFaIcon !== undefined\" [icon]=\"toolbarButton.secondaryFaIcon\" size=\"xs\"\n          class=\"secondary-draw-fire-icon\"></fa-icon>\n      </button>\n    </div>\n\n    <div class=\"mapboxgl-ctrl mapboxgl-ctrl-group\" *ngIf=\"editableFeatureToolbarButtons.length > 0\">\n      <button class=\"mapboxgl-ctrl-icon\" title=\"Edit features\" (click)=\"toggleFeatureEdit()\" #mapboxDrawEditButton>\n        <fa-icon [icon]=\"['fas', 'pen']\" size=\"sm\"></fa-icon>\n\n      </button>\n    </div>\n  </div>\n  <div class=\"legend-overlay\" *ngIf=\"activities != null\">\n    <div class=\"legend-overlay-inner\">\n      <table id=\"pop-legend\" cellspacing=\"3px\">\n        <tbody>\n          <tr *ngFor=\"let data of activities | keyvalue\">\n            <td class=\"p-2\">\n              <input type=\"color\" disabled=\"disabled\" value={{data.value}}>\n            </td>\n            <td>\n              {{data.key}}\n            </td>\n          </tr>\n        </tbody>\n\n      </table>\n    </div>\n  </div>\n\n  <!-- Play button + Digital clock-->\n  <div id=\"simulation-play\" class=\"\" [ngStyle]=\"{'bottom': showChartController ? '300px' : '10px'}\" *ngIf=\"currentJob !== undefined &&  jobType =='emv2' && currentJob.status == 'FINISHED' \">\n    <a title=\"Play\" (click)=\"playSimulation()\">\n      <fa-icon [icon]=\"['fas','stop']\" *ngIf=\"isPlaying\"></fa-icon>\n      <fa-icon [icon]=\"['fas', 'play']\" *ngIf=\"!isPlaying\"></fa-icon> {{simulationStatus}} {{clock}}\n    </a>\n    <br><br>animation speed {{animationSpeed}}x<br><br>\n    <div class=\"\" *ngIf=\"currentJob !== undefined &&  jobType =='emv2' && currentJob.status == 'FINISHED' \">\n\n\n      <p-slider [(ngModel)]=\"this.animationSpeed\" [min]=\"0\" [max]=\"100\" [step]=\"10\" (onChange)=\"setAnimationSpeed($event)\"></p-slider>\n\n\n    </div>\n  </div>\n  <!-- Animation speed controller -->\n\n\n  <div id=\"timeline-controller\" class=\"fake-leaflet-control-colours\" [ngStyle]=\"{'bottom': showChartController ? '300px' : '10px'}\"\n    *ngIf=\"currentJob !== undefined && timeSliders.length !== 0\">\n    <div class=\"timeline\" [ngClass]=\"{\n        hidden: !(\n          currentJob.status === 'FINISHED' &&\n          arrivalTimeContourLayer !== undefined\n        )\n      }\"\n      *ngFor=\"let timeSlider of timeSliders\">\n      <span class=\"time-slider-label\">\n        <fa-icon [icon]=\"['fas', 'clock']\" size=\"sm\"></fa-icon>\n        &nbsp;Time\n      </span>\n      <p-slider [(ngModel)]=\"timeSlider.value\" [min]=\"timeSlider.min\" [max]=\"timeSlider.max\" [step]=\"timeSlider.step\"\n        class=\"time-slider\"></p-slider>\n      <!-- <input class=\"time-input\" type=\"number\" pInputText [(ngModel)]=\"timeSliderValue\" (ngModelChange)=\"timeSliderChange($event)\"/>\n    <span class=\"time-slider-label\">&nbsp; second{{(timeSliderValue !== 1) ? 's' : ''}}</span> -->\n      <!-- (ngModelChange)=\"timeSliderDateChange($event)\" -->\n      <p-calendar [(ngModel)]=\"timeSlider.valueDate\" showTime=\"true\" hourFormat=\"24\" showIcon=\"true\" class=\"p-autocomplete\"\n        inputStyleClass=\"time-input\" [minDate]=\"timeSlider.minDate\" [maxDate]=\"timeSlider.maxDate\" appendTo=\"body\"></p-calendar>\n    </div>\n  </div>\n  <p-dialog header=\"Evacuation Messages\" [(visible)]=\"emergencyMessageDialog\" widgetVar=\"dlg2\" modal=\"true\" appendTo=\"body\"\n    position=\"top\" [closable]=\"false\">\n    <h3 *ngIf=\"!updateMessage\"> List your messages here </h3>\n    <h3 *ngIf=\"updateMessage\"> Update message</h3>\n\n    <div class=\"ui-inputgroup\">\n      <input type=\"text\" pInputText [(ngModel)]=\"broadcastZoneString\" disabled=\"true\" [style]=\"{'margin':'2px'}\" />\n    </div>\n    <div class=\"ui-inputgroup\">\n      <span class=\"ui-grid-col-8\" [style]=\"{'margin':'2px'}\">Time </span>\n      <p-calendar class=\"ui-grid-col-4\" [(ngModel)]=\"selectedMessageSendTime\" showTime=\"true\" hourFormat=\"24\" timeOnly=\"true\"\n        [style]=\"{'margin':'2px','margin-right':'-9%' }\" (ngModelChange)=\"updateErrorMessagesTime()\" [stepMinute]=\"15\"></p-calendar><br>\n    </div>\n    <div class=\"ui-inputgroup\">\n      <span class=\"ui-grid-col-8\" [style]=\"{'margin': '0px'}\">Message Type </span>\n      <p-dropdown class=\"ui-grid-col-4\" [(ngModel)]=\"selectedEvacMessage\" [options]=\"evacMessages.options\" optionLabel=\"message\"\n        baseZIndex=\"1400\" [style]=\"{'margin-left': '-11px'}\" (ngModelChange)=\"updateErrorMessagesType()\">\n      </p-dropdown> <br>\n    </div>\n    <div class=\"ui-inputgroup\">\n      <textarea [rows]=\"3\" [cols]=\"60\" pInputTextarea autoResize=\"autoResize\" [(ngModel)]=\"messageContent\" placeholder=\"Content\"></textarea>\n    </div>\n    <ul>\n      <li *ngIf=\"Errors.messageType\" class=\"ui-message ui-messages-error\">\n        Please select a Evacuation Message type\n      </li>\n      <li *ngIf=\"Errors.time\" class=\"ui-message ui-messages-error\">\n        Please select a Time\n      </li>\n      <li *ngIf=\"Errors.content\" class=\"ui-message ui-messages-error\">\n        Please add a content to this message\n      </li>\n      <li *ngIf=\"Errors.duplicate\" class=\"ui-message ui-messages-error\">\n        Duplicate Entry\n      </li>\n    </ul>\n\n    <!-- <p-listbox *ngIf=\"!updateMessage\" [options]=\"enteredEvacMessages\">\n      <ng-template let-enteredEvacMessage let-i=\"index\" pTemplate=\"item\">\n        <div class=\"ui-helper-clearfix\">\n          <span>{{i+1}}) </span>\n          <span>{{enteredEvacMessage.broadcastHHMM}} </span>\n          <span>{{enteredEvacMessage.type}} </span>\n          <span>{{enteredEvacMessage.broadcastZones}} </span>\n\n          <a title=\"Delete Message\" class=\"icon-link\" (click)=\"deleteMessage(i)\" disabled>\n            <fa-icon [icon]=\"['fas', 'trash']\"></fa-icon>\n          </a>\n        </div>\n      </ng-template>\n    </p-listbox> -->\n    <p-footer>\n      <button type=\"button\" pButton icon=\"pi pi-times\" (click)=\"showEmergencyMessageDialog()\" label=\"Close \" class=\"ui-button-secondary\"></button>\n      <button *ngIf=\"!updateMessage\" type=\"button\" pButton icon=\"pi pi-check\" (click)=\"addNewMessage()\" label=\"Add\"></button>\n      <button *ngIf=\"updateMessage\" type=\"button\" pButton icon=\"pi pi-check\" (click)=\"updateSingleMessage()\" label=\"Update\"></button>\n    </p-footer>\n  </p-dialog>\n\n  <div id=\"map\"></div>\n\n  <svg class=\"svg-overlay\"></svg>\n\n  <!-- https://research.csiro.au/geoweb/ -->\n  <div class=\"map-logo\">\n\n\n    <img src=\"assets/img/logo/favicon.ico\" alt=\"INDRA Logo\" class=\"map-logo-img\" />\n    <div class=\"logo-text\"></div>\n  </div>\n</div>"
 
 /***/ }),
 
@@ -8860,8 +8860,11 @@ let GeowebMapComponent = class GeowebMapComponent {
         this.selectedLayers = [];
         this.editableFeatureToolbarButtons = [];
         this.timeSliders = [];
+        this.mapStyle = "mapbox://styles/mapbox/light-v10";
+        this.mapStyleChanged = false;
         this.isPlaying = false;
         this.simulationStatus = "play";
+        this.clockStartTime = -1;
         this.timeFromSlider = "00:00";
         this.timeSliderStep = 0;
         this.customFormValidators = {
@@ -8874,6 +8877,7 @@ let GeowebMapComponent = class GeowebMapComponent {
         this.zoneVisibility = false;
         this.messageList = false;
         this.messageListDialog = false;
+        this.updateMessage = false;
         this.evacMessages = {
             options: [
                 {
@@ -8891,10 +8895,7 @@ let GeowebMapComponent = class GeowebMapComponent {
                 {
                     message: "EVACUATE_NOW",
                 },
-            ],
-            selected: {
-                message: "NONE",
-            },
+            ]
         };
         this.mapStyles = {
             options: [
@@ -8916,6 +8917,8 @@ let GeowebMapComponent = class GeowebMapComponent {
             ]
         };
         this.enteredEvacMessages = [];
+        this.messageListOptions = [];
+        this.highlightedZones = [];
         this.Errors = { "messageType": false, "time": false, "content": false, "duplicate": false };
         this.finalMessageList = {
             "help": [
@@ -9029,13 +9032,19 @@ let GeowebMapComponent = class GeowebMapComponent {
      */
     startClock() {
         setInterval(() => {
+            if (this.clockStartTime == -1) //change this condition to true in first iteration
+             {
+                this.clockStartTime = Date.now();
+            }
             let start = this.currentJob.getTimeStamps().start;
             let finish = this.currentJob.getTimeStamps().finish;
             const loopLength = finish - start;
             let animationSpeed = this.animationSpeed;
-            const timestamp = Date.now() / 1000;
-            const loopTime = loopLength / animationSpeed;
+            var timestamp;
+            var loopTime;
             let totalSeconds;
+            timestamp = (Date.now() - this.clockStartTime) / 1000;
+            loopTime = loopLength / animationSpeed;
             let time1 = new Date().getTime();
             totalSeconds = Math.round(((timestamp % loopTime) / loopTime) * loopLength + start);
             let hours = Math.floor(totalSeconds / 3600);
@@ -9064,6 +9073,9 @@ let GeowebMapComponent = class GeowebMapComponent {
         let hoursSTR = String(hours).padStart(2, "0");
         let secondsSTR = String(seconds).padStart(2, "0");
         this.clock = hoursSTR + ":" + minutesSTR + ":" + secondsSTR;
+        let totalMinutes = minutes + (hours * 60);
+        //console.log("total" + totalMinutes)
+        this.currentJob.simulateFireLayer(totalMinutes);
         console.log("setup clock" + this.clock);
     }
     /**
@@ -9088,7 +9100,6 @@ let GeowebMapComponent = class GeowebMapComponent {
     ngAfterViewInit() {
         this.initMapbox();
         this.layerService.layerLegendElement = d3_1.select("#layer-legends");
-        //this.showEmergencyMessageDialog()
     }
     ngOnDestroy() {
         this.chartSubscription.unsubscribe();
@@ -9105,7 +9116,7 @@ let GeowebMapComponent = class GeowebMapComponent {
                 "pk.eyJ1Ijoibmlja2ZvcmJlc3NtaXRoIiwiYSI6ImNrMHl2eXF4ejA4aGozYmp4YmlkOTBnbjEifQ.qGNT0EV6MmPtyQa4ifGzYA";
             const map = new mapboxGl.Map({
                 container: "map",
-                style: "mapbox://styles/mapbox/light-v10",
+                style: this.mapStyle,
                 zoom: 4,
                 logoPosition: "bottom-right",
                 center: [133.46191406250003, -26.23430203240673],
@@ -9188,6 +9199,11 @@ let GeowebMapComponent = class GeowebMapComponent {
                         }
                     }
                 });
+                //Remove highlighted zones
+                this.highlightedZones.forEach(function (value) {
+                    map.setPaintProperty(value, 'fill-color', 'rgba(200, 100, 240, 0.5)');
+                });
+                this.highlightedZones = [];
             });
             // Hide popups on map {move, zoom}
             map.on("movestart", () => {
@@ -9217,9 +9233,9 @@ let GeowebMapComponent = class GeowebMapComponent {
             });
             map.on('mousemove', 'subgroups-layer', function (e) {
                 // Change the cursor style as a UI indicator.
-                map.getCanvas().style.cursor = 'pointer';
+                //map.getCanvas().style.cursor = 'pointer';
                 var coordinates = e.features[0].geometry["coordinates"][0][0];
-                var description = "Zone :" + e.features[0].properties.SA1_MAIN16 + "<br>" + e.features[0].properties.SA3_NAME16;
+                var description = "Zone : " + e.features[0].properties.SA1_MAIN16 + "<br>" + e.features[0].properties.SA3_NAME16;
                 // Ensure that if the map is zoomed out such that multiple
                 // copies of the feature are visible, the popup appears
                 // over the copy being pointed to.
@@ -9299,6 +9315,13 @@ let GeowebMapComponent = class GeowebMapComponent {
                     popupVisible = false;
                     this.showLayerValues = false;
                     popup.remove();
+                }
+            });
+            map.on("style.load", event => {
+                console.log("style changed");
+                if (this.mapStyleChanged) {
+                    this.currentJob.createInputLayers();
+                    this.currentJob.setMapStyle(this.mapStyle);
                 }
             });
             this.layerService.mapboxGl = map;
@@ -9396,9 +9419,12 @@ let GeowebMapComponent = class GeowebMapComponent {
                             name: `Creating output layers`,
                             icon: spinner_service_service_1.SpinnerIcon.GridPulse,
                         });
+                        this.activities = {};
+                        // this.currentJob.setMapStyle(this.mapStyle)
+                        console.log(this.mapStyle);
+                        //await this.layerService.mapboxGl.setStyle(this.mapStyle)
                         this.jobOutputLayers = yield this.currentJob.createSimulationLayer();
                         this.setupInitialTime();
-                        this.activities = {};
                         this.animationSpeed = this.currentJob.getAnimationSpeed();
                         this.jobLayers.push(...this.jobOutputLayers);
                     }
@@ -9603,7 +9629,9 @@ let GeowebMapComponent = class GeowebMapComponent {
         //console.log(this.regionData[this.selectedLayers[0]["_mapboxGlLayer"]["id"]]["crs"])
         this.zoneVisibility = false;
         this.currentJob.createZoneLayer(this.selectedLayers[0]["_mapboxGlLayer"]["id"]);
+        this.clearZoneLayers();
         this.enteredEvacMessages = [];
+        this.messageListOptions = [];
         this.finalMessageList.messages = [];
     }
     //Event handler for animation speed setup slider
@@ -9616,6 +9644,7 @@ let GeowebMapComponent = class GeowebMapComponent {
      */
     getSelectedTime(event) {
         let totalminutes = event.value;
+        console.log("getSelectedtime" + totalminutes);
         let hours = Math.floor(parseInt(totalminutes) / 60);
         let minutes = parseInt(totalminutes) % 60;
         let minutesSTR = String(minutes).padStart(2, "0");
@@ -9625,17 +9654,17 @@ let GeowebMapComponent = class GeowebMapComponent {
         this.currentJob.filterFireLayers(totalminutes);
         this.currentJob.filterPopulationLayers(totalminutes);
         let date = new Date();
-        if (parseInt(minutesSTR) > 0 && parseInt(minutesSTR) <= 15) {
+        if (parseInt(minutesSTR) > 0 && parseInt(minutesSTR) < 15) {
+            minutesSTR = "00";
+        }
+        if (parseInt(minutesSTR) > 15 && parseInt(minutesSTR) < 30) {
             minutesSTR = "15";
         }
-        if (parseInt(minutesSTR) > 15 && parseInt(minutesSTR) <= 30) {
+        if (parseInt(minutesSTR) > 30 && parseInt(minutesSTR) < 45) {
             minutesSTR = "30";
         }
-        if (parseInt(minutesSTR) > 30 && parseInt(minutesSTR) <= 45) {
+        if (parseInt(minutesSTR) > 45 && parseInt(minutesSTR) < 60) {
             minutesSTR = "45";
-        }
-        if (parseInt(minutesSTR) > 45 && parseInt(minutesSTR) <= 60) {
-            minutesSTR = "60";
         }
         date.setHours(parseInt(hoursSTR));
         date.setMinutes(parseInt(minutesSTR));
@@ -9643,11 +9672,14 @@ let GeowebMapComponent = class GeowebMapComponent {
         this.selectedMessageSendTime = date;
     }
     showEmergencyMessageDialog() {
-        if (this.emergencyMessageDialog) {
+        if (this.emergencyMessageDialog || this.updateMessage) {
             this.emergencyMessageDialog = false;
+            this.updateMessage = false;
         }
         else {
             this.emergencyMessageDialog = true;
+            this.updateMessage = false;
+            this.Errors.duplicate = false;
         }
     }
     /**
@@ -9698,17 +9730,23 @@ let GeowebMapComponent = class GeowebMapComponent {
             }
             return 0;
         });
-        console.log(this.enteredEvacMessages);
+        this.messageListOptions = this.enteredEvacMessages.map((item, index) => ({ value: index, label: item.broadcastHHMM, type: item.type, zone: item.broadcastZones, content: item.content }));
+        //console.log(this.enteredEvacMessages)
     }
     /**
      * Delete selected evacuation messages
      * @param i index of selected item
      */
     deleteMessage(i) {
+        const count = this.enteredEvacMessages.reduce((pre, cur) => (cur.broadcastZones === this.enteredEvacMessages[i]["broadcastZones"]) ? ++pre : pre, 0);
+        console.log("count" + count);
         //Delete layer attached to this message
-        this.deleteSingleZoneLayer(this.enteredEvacMessages[i]["broadcastZones"]);
+        if (count == 1) {
+            this.deleteSingleZoneLayer(this.enteredEvacMessages[i]["broadcastZones"]);
+        }
         // delete this.enteredEvacMessages[i]
         this.enteredEvacMessages.splice(i, 1);
+        this.messageListOptions.splice(i, 1);
     }
     /**
      * Update error messages when Evacuation messages drop down changes
@@ -9846,15 +9884,13 @@ let GeowebMapComponent = class GeowebMapComponent {
      * Change map style
      */
     changeMapStyle(event) {
-        console.log(event.value.style);
-        // "mapbox://styles/mapbox/dark-v10"
-        this.layerService.mapboxGl.setStyle('mapbox://styles/mapbox/' + event.value.style);
-    }
-    /**
-     * Display available message list
-     */
-    showMessageListDialog() {
-        this.messageListDialog = true;
+        return __awaiter(this, void 0, void 0, function* () {
+            this.mapStyleChanged = true;
+            this.layerService.mapboxGl.removeLayer("surf_coast_shire");
+            this.layerService.mapboxGl.removeLayer("mount_alexander_shire");
+            this.layerService.mapboxGl.setStyle('mapbox://styles/mapbox/' + event.value.style);
+            this.mapStyle = 'mapbox://styles/mapbox/' + event.value.style;
+        });
     }
     /**
      * Create new layers according to selected messages
@@ -9866,7 +9902,7 @@ let GeowebMapComponent = class GeowebMapComponent {
             type: "fill",
             source: zone,
             paint: {
-                'fill-color': '#627BC1'
+                'fill-color': 'rgba(200, 100, 240, 0.5)'
             }
         }, {
             id: zone,
@@ -9883,6 +9919,107 @@ let GeowebMapComponent = class GeowebMapComponent {
     deleteSingleZoneLayer(id) {
         if (this.layerService.mapboxGl.getLayer(id)) {
             this.layerService.mapboxGl.removeLayer(id);
+        }
+    }
+    /**
+     * Highlight zone when message selected
+     */
+    highlightZone(i) {
+        if (this.highlightedZones.includes(this.enteredEvacMessages[i]["broadcastZones"])) {
+            console.log("includes");
+            const index = this.highlightedZones.indexOf(this.enteredEvacMessages[i]["broadcastZones"]);
+            if (index > -1) {
+                this.highlightedZones.splice(index, 1);
+            }
+            this.layerService.mapboxGl.setPaintProperty(this.enteredEvacMessages[i]["broadcastZones"], 'fill-color', 'rgba(200, 100, 240, 0.5)');
+        }
+        else {
+            console.log("no");
+            //remove existing highlight layes
+            if (this.highlightedZones.length > 0) {
+                this.layerService.mapboxGl.setPaintProperty(this.highlightedZones[0], 'fill-color', 'rgba(200, 100, 240, 0.5)');
+                this.highlightedZones = [];
+            }
+            this.highlightedZones.push(this.enteredEvacMessages[i]["broadcastZones"]);
+            this.layerService.mapboxGl.setPaintProperty(this.enteredEvacMessages[i]["broadcastZones"], 'fill-color', 'rgba(200, 100, 240, 1)');
+        }
+        console.log("highlight" + this.highlightedZones);
+    }
+    /**
+     * Edit evac message
+     */
+    editMessageDialog(i) {
+        console.log("edit message");
+        // setup input fields 
+        this.broadcastZoneString = "Broadcast Zone : " + this.messageListOptions[i].zone + " Message No : " + (this.messageListOptions[i].value + 1);
+        this.updatingMessageNumber = parseInt(this.messageListOptions[i].value);
+        let obj = { "message": this.messageListOptions[i].type };
+        this.selectedEvacMessage = obj;
+        this.messageContent = this.messageListOptions[i].content;
+        let date = new Date();
+        let hoursSTR = this.messageListOptions[i].label.substr(0, 2);
+        let minutesSTR = this.messageListOptions[i].label.substr(2, 3);
+        date.setHours(parseInt(hoursSTR));
+        date.setMinutes(parseInt(minutesSTR));
+        date.setSeconds(0);
+        this.selectedMessageSendTime = date;
+        if (!this.updateMessage) {
+            this.updateMessage = true;
+            this.emergencyMessageDialog = true;
+            this.Errors.duplicate = false;
+        }
+    }
+    updateSingleMessage() {
+        console.log("this.updatingMessageNumber" + this.updatingMessageNumber);
+        if (this.selectedEvacMessage == undefined) {
+            this.Errors.messageType = true;
+            return;
+        }
+        if (this.selectedMessageSendTime == undefined) {
+            this.Errors.time = true;
+            return;
+        }
+        if (this.messageContent == undefined || this.messageContent == " " || this.messageContent == null) {
+            this.Errors.content = true;
+            return;
+        }
+        let message = this.selectedEvacMessage;
+        if (message["message"] == "NONE") {
+            this.Errors.messageType = true;
+            return;
+        }
+        this.Errors.messageType = false;
+        this.Errors.time = false;
+        this.Errors.content = false;
+        let time = this.selectedMessageSendTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        let broadcastHHMM = time.slice(0, 2) + time.slice(3);
+        let obj = { "type": message["message"], "broadcastHHMM": broadcastHHMM, "broadcastZones": this.broadcastZones, "content": this.messageContent };
+        for (var i = 0; i < this.enteredEvacMessages.length; i++) {
+            if (this.enteredEvacMessages[i].type == obj["type"] && this.enteredEvacMessages[i].broadcastHHMM == obj["broadcastHHMM"] && this.enteredEvacMessages[i].broadcastZones == obj["broadcastZones"] && this.enteredEvacMessages[i].content == obj["content"]) {
+                this.Errors.duplicate = true;
+                return;
+            }
+        }
+        this.Errors.duplicate = false;
+        this.enteredEvacMessages[this.updatingMessageNumber] = { "type": message["message"], "broadcastHHMM": broadcastHHMM, "broadcastZones": this.broadcastZones, "content": this.messageContent };
+        //Sort by broadcast time
+        this.enteredEvacMessages = this.enteredEvacMessages.sort((n1, n2) => {
+            if (n1.broadcastHHMM > n2.broadcastHHMM) {
+                return 1;
+            }
+            if (n1.broadcastHHMM < n2.broadcastHHMM) {
+                return -1;
+            }
+            return 0;
+        });
+        this.messageListOptions = this.enteredEvacMessages.map((item, index) => ({ value: index, label: item.broadcastHHMM, type: item.type, zone: item.broadcastZones, content: item.content }));
+    }
+    /**
+     * Clear individual zones created for evac messages
+     */
+    clearZoneLayers() {
+        for (let i = 0; i < this.enteredEvacMessages.length; i++) {
+            this.deleteSingleZoneLayer(this.enteredEvacMessages[i]["broadcastZones"]);
         }
     }
 };
@@ -12112,8 +12249,18 @@ class Emv2ClientJob extends job_1.ClientJob {
         this.inputFormModel = form_model_1.emv2FormRootModel;
         this.inputShapeFc = turf_1.featureCollection([]);
         this.animationSpeed = 60;
+        this.animateFirstTime = true;
+        this.animateThreshold = false;
+        this.threshold = 0;
+        this.gap = 0;
+        this.animateGap = false;
+        this.animateThresholdEnd = false;
+        this.thresholdEnd = 0;
+        this.gapEnd = 0;
+        this.animateGapEnd = false;
         this.fireLoaded = false;
         this.step = 1;
+        this.animationStartTime = -1;
         this.populationLoaded = false;
         this.populationGeojson = [];
         this.activities = {};
@@ -12131,6 +12278,7 @@ class Emv2ClientJob extends job_1.ClientJob {
     }
     createInputLayers() {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log("create input layers");
             // Creating layer for surf coast shire matSIM network
             this.surfCoastShire = new mapbox_gl_layer_1.MapboxGlLayer("Surf Coast Shire", {
                 id: "surf_coast_shire",
@@ -12160,8 +12308,14 @@ class Emv2ClientJob extends job_1.ClientJob {
                         name: "Anglesea_Weekday_10_000_Persons",
                     },
                     {
+                        name: "Anglesea_Sample_1000_Persons",
+                    },
+                    {
                         name: "Anglesea_Sample_20_Persons",
                     },
+                    {
+                        name: "Anglesea_Sample_20_Persons_new",
+                    }
                 ],
                 selected: {
                     name: "none",
@@ -12236,9 +12390,6 @@ class Emv2ClientJob extends job_1.ClientJob {
                     },
                     {
                         name: "Castlemaine_Archetypes_10_867_Persons",
-                    },
-                    {
-                        name: "Caslemain_Archetypes_500_Persons",
                     },
                     {
                         name: "Caslemain_Archetypes_100_Persons",
@@ -12387,6 +12538,7 @@ class Emv2ClientJob extends job_1.ClientJob {
     createSimulationLayer() {
         return __awaiter(this, void 0, void 0, function* () {
             //this.simulationDataURL = "http://localhost:12345/populations/trips.congestion2.deckgl.json"
+            //this.layerService.mapboxGl.setStyle(mapStyle)
             this.activities = {};
             console.log("job name" + this.name);
             console.log("Output Dir" + this.outputDirectory);
@@ -12396,9 +12548,11 @@ class Emv2ClientJob extends job_1.ClientJob {
             let Data = yield this.layerService.getFile(DataURL, rest_api_service_1.ResponseType.JSON, ".json", false);
             // DSS: Zoom to simulation area
             this.flyPoint = Data[0].path[0];
+            console.log("fly" + this.flyPoint);
             //DSS:Setup simulation start and finish time
             this.simulationStartTime = Data[Data.length - 1].start;
             this.simulationFinishTime = Data[Data.length - 1].finish;
+            console.log("start finish " + this.simulationStartTime + ":" + this.simulationFinishTime);
             //DSS:Create simulation layer(Agents runs on this layer)
             this.maldonTestLayer = new mapbox_1.MapboxLayer({
                 id: 'maldonTestLayer',
@@ -12407,10 +12561,11 @@ class Emv2ClientJob extends job_1.ClientJob {
                 getPath: d => d.path,
                 getTimestamps: d => (d.timestamps),
                 getColor: d => (d.colours),
-                opacity: 0.4,
+                opacity: 0.6,
                 widthMinPixels: 4,
                 rounded: true,
-                trailLength: 80,
+                trailLength: 100,
+                billboard: true,
                 currentTime: 0
             });
             this.maldonTestLayer.animationSpeed = 60;
@@ -12429,7 +12584,7 @@ class Emv2ClientJob extends job_1.ClientJob {
             let DataURL_Config = this.configService.config.MASTER_WEBSERVER_URL + this.configService.serverConfig.API_JOB_FILES_URL + this.inputDirectory + "scenario/" + this.name + ".json";
             this.layerService.clearFileCache();
             let configData = yield this.layerService.getFile(DataURL_Config, rest_api_service_1.ResponseType.JSON, ".json", false);
-            console.log("fire" + configData["fire"]);
+            // console.log("fire" + configData["fire"])
             let selectedFireFile = configData["fire"];
             //let dataURL_Fire = "http://localhost:12345/phoenix/" + selectedFireFile + ".json"
             let dataURL_Fire = this.configService.config.MASTER_WEBSERVER_URL + this.configService.serverConfig.API_TEMP_FILES_URL + "layer-files/phoenix/" + selectedFireFile + ".json";
@@ -12494,27 +12649,103 @@ class Emv2ClientJob extends job_1.ClientJob {
         });
     }
     animateMaldonTest() {
+        if (this.animationStartTime == -1) //change this condition to true in first iteration
+         {
+            this.animationStartTime = Date.now();
+        }
         const loopLength = (this.simulationFinishTime - this.simulationStartTime);
         const animationSpeed = this.animationSpeed;
-        const timestamp = Date.now() / 1000;
+        //const timestamp = (Date.now() / 1000) 
+        const timestamp = ((Date.now() - this.animationStartTime) / 1000);
         const loopTime = loopLength / animationSpeed;
-        var currentTime = 0;
-        //this.stop = false
-        if (((timestamp % loopTime) / loopTime) * loopLength < (this.simulationStartTime) || (this.simulationStartTime)) {
-            this.currentTime = ((timestamp % loopTime) / loopTime) * loopLength + (this.simulationStartTime);
-        }
-        else {
-            this.currentTime = ((timestamp % loopTime) / loopTime) * loopLength;
-        }
-        //console.log("currentTime maldon" + currentTime)
+        var currentTime;
+        this.currentTime = ((timestamp % loopTime) / loopTime) * loopLength + (this.simulationStartTime);
+        console.log("currentTime maldon" + this.currentTime);
         currentTime = this.currentTime;
+        // console.log("final current : " + currentTime)
         if (!this.stop) {
             var step = Math.floor(currentTime / 60);
-            //this.simulateFireLayer(step)
+            //Simulate fire
+            this.simulateFireLayer(step);
             this.maldonTestLayer.setProps({ currentTime });
             this.animationFrame = requestAnimationFrame(this.animateMaldonTest.bind(this));
         }
     }
+    // animateMaldonTest2(): void {
+    //   const loopLength = (this.simulationFinishTime - this.simulationStartTime);
+    //   const animationSpeed = this.animationSpeed
+    //   var timestamp;
+    //   var loopTime;
+    //   var currentTime;
+    //   //this.stop = false
+    //   //console.log("timestamp" + timestamp)
+    //   timestamp = (Date.now() / 1000)
+    //   loopTime = loopLength / animationSpeed
+    //   // console.log("loop time" + loopTime)
+    //   if (this.animateFirstTime) {
+    //     if (!this.animateThreshold) {
+    //       this.threshold = (((timestamp % loopTime) / loopTime) * loopLength)
+    //       this.animateThreshold = true
+    //       //console.log("the set: " + this.threshold)
+    //     }
+    //     this.currentTime = ((timestamp % loopTime) / loopTime) * loopLength + (this.simulationStartTime);
+    //     this.currentTime = this.currentTime - this.threshold
+    //     if (this.currentTime < this.simulationStartTime) {
+    //       console.log("less")
+    //       //console.log("previuos" + this.previousTime)
+    //       //console.log("gap" + (this.previousTime - (((timestamp % loopTime) / loopTime) * loopLength + (this.simulationStartTime))))
+    //       if (!this.animateGap) {
+    //         this.gap = this.previousTime - (((timestamp % loopTime) / loopTime) * loopLength + (this.simulationStartTime))
+    //         this.animateGap = true
+    //       }
+    //       this.currentTime = ((timestamp % loopTime) / loopTime) * loopLength + (this.simulationStartTime);
+    //       this.currentTime = this.currentTime + this.gap
+    //     }
+    //     //console.log("the : " + this.threshold)
+    //     console.log("the  actual : " + ((timestamp % loopTime) / loopTime) * loopLength)
+    //     //console.log("here1 : " + this.currentTime)
+    //   }
+    //   if (!this.animateFirstTime) {
+    //     if (!this.animateThresholdEnd) {
+    //       this.thresholdEnd = (((timestamp % loopTime) / loopTime) * loopLength)
+    //       this.animateThresholdEnd = true
+    //       //console.log("the set: " + this.threshold)
+    //     }
+    //     console.log("tehend : " + this.thresholdEnd)
+    //     this.currentTime = ((timestamp % loopTime) / loopTime) * loopLength + (this.simulationStartTime);
+    //     this.currentTime = this.currentTime - this.thresholdEnd
+    //     console.log("the  actual2 : " + ((timestamp % loopTime) / loopTime) * loopLength)
+    //     console.log("here2 : " + this.currentTime)
+    //     if (this.currentTime < this.simulationStartTime) {
+    //       console.log("less2")
+    //       //console.log("previuos" + this.previousTime)
+    //       //console.log("gap" + (this.previousTime - (((timestamp % loopTime) / loopTime) * loopLength + (this.simulationStartTime))))
+    //       if (!this.animateGapEnd) {
+    //         this.gapEnd = this.previousTime - (((timestamp % loopTime) / loopTime) * loopLength + (this.simulationStartTime))
+    //         this.animateGapEnd = true
+    //       }
+    //       this.currentTime = ((timestamp % loopTime) / loopTime) * loopLength + (this.simulationStartTime);
+    //       this.currentTime = this.currentTime + this.gapEnd
+    //     }
+    //   }
+    //   // console.log("currentTime maldon" + this.currentTime)
+    //   currentTime = this.currentTime
+    //   // console.log("final current : " + currentTime)
+    //   if (this.animateFirstTime) {
+    //     if (Math.ceil(this.currentTime) + 5 >= this.simulationFinishTime) {
+    //       console.log("here3 : " + this.currentTime)
+    //       this.animateFirstTime = false
+    //     }
+    //   }
+    //   if (!this.stop) {
+    //     var step = Math.floor(currentTime / 60)
+    //     //Simulate fire
+    //     //this.simulateFireLayer(step)
+    //     this.previousTime = currentTime
+    //     this.maldonTestLayer.setProps({ currentTime });
+    //     this.animationFrame = requestAnimationFrame(this.animateMaldonTest.bind(this));
+    //   }
+    // }
     stopAnimation() {
         var temp = this.currentTime;
         var currentTime = temp;
@@ -12864,6 +13095,10 @@ class Emv2ClientJob extends job_1.ClientJob {
             this.zoneLayer.hide();
             // this.zoneHoverLayer.hide()
         }
+    }
+    setMapStyle(style) {
+        this.mapboxStyle = style;
+        console.log(this.mapboxStyle);
     }
 }
 exports.Emv2ClientJob = Emv2ClientJob;
@@ -17063,10 +17298,22 @@ class ClientJob extends job_base_1.JobBase {
         });
     }
     /**
+     * Simulate fire
+     * @param stepMinutes
+     */
+    simulateFireLayer(stepMinutes) {
+    }
+    /**
      * return the colors and actions of loaded population data
      */
     getPopulationColorLegends() {
         return;
+    }
+    /**
+     *
+     * @param style selected style
+     */
+    setMapStyle(style) {
     }
     setBbox() { }
     canJobRun() {
@@ -17421,10 +17668,10 @@ let ConfigService = class ConfigService {
                 this.config.RESTAPI_PORT = location.protocol === "https:" ? 8443 : 8080;
             }
             this.config.APP_PATH = "./";
-            this.config.HOSTNAME =
-                window.location.hostname !== "" ? window.location.hostname : "localhost";
+            // this.config.HOSTNAME =
+            //   window.location.hostname !== "" ? window.location.hostname : "localhost"
             // // OVERRIDE
-            // this.config.HOSTNAME = "ec2-3-104-53-73.ap-southeast-2.compute.amazonaws.com"
+            this.config.HOSTNAME = "ec2-54-206-226-208.ap-southeast-2.compute.amazonaws.com";
             // this.config.RESTAPI_PORT = 80
             if (this.electronService.isElectron) {
                 this.config.ELECTRON = true;

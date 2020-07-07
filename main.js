@@ -17684,7 +17684,8 @@ let ConfigService = class ConfigService {
                 this.config.ELECTRON = false;
             }
             // Prepend 's' to http and ws if the location is https
-            const SECURE_S = location.protocol === "https:" ? "s" : "";
+            //const SECURE_S = location.protocol === "https:" ? "s" : ""
+            const SECURE_S = location.protocol === "https:" ? "" : "";
             this.config.MASTER_WEBSOCKET_URL = `ws${SECURE_S}://${this.config.HOSTNAME}:${this.config.RESTAPI_PORT}/ws`;
             this.config.MASTER_WEBSERVER_URL = `http${SECURE_S}://${this.config.HOSTNAME}:${this.config.RESTAPI_PORT}/`;
             // Assign values to Angular environment obj
